@@ -34,7 +34,9 @@ public class TigrinyaDictionaryBuilder
     private static Gson gson = new GsonBuilder().create();
     static final DefaultResourceDataBroker defaultResourceDataBroker = new DefaultResourceDataBroker("/io/tigrinyanlp", "/io/tigrinyanlp/rules");
 
+    // download https://github.com/fgaim/Tigrinya-WordCount/blob/main/ti_word_count.txt in /hunspell/ti/
     static final String hunspell_extra = "/hunspell/ti/ti_word_count.txt";
+
     static final String hunspell_dic = "/hunspell/ti/ti_ER.dict";
     static final String hunspell_freq = "/hunspell/ti/ti_ER_wordlist.xml";
 

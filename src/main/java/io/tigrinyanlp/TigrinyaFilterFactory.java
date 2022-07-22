@@ -24,7 +24,7 @@ public class TigrinyaFilterFactory {
                 new InvalidWords(),
                 // remove words that start or end with '
                 new InvalidStart(),
-                // detect missing space like ብዘይስራሕ = should have been ብዘይ ስራሕ. add if missing
+                // detect missing space like ብዘይስራሕ = should have been ብዘይ ስራሕ. same is true for ስለ|ምስ|ከም|እንተ
                 new SplitVerbFromProposition(),
                 // remove a one character word or word with frequency <2
                 new ShortWord()
@@ -61,7 +61,7 @@ public class TigrinyaFilterFactory {
                 String verb = matcher.group(2);
                 String pos = posMap.get(verb);
                 String posw = posMap.get(word);
-                //remove joined words if root exists
+                //remove joined words if root is verb longer than 2 chars or non verb >3 chars exist
                 if (verb.length() > 2 && posw != null && pos != null && (posw.startsWith("V") || pos.startsWith("V"))) {
                     return "";
                 } else if (verb.length() > 3 && pos != null) {
