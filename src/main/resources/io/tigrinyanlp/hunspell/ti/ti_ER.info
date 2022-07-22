@@ -1,0 +1,13 @@
+#
+# Dictionary properties.
+#
+# author Biniam Gebremchael 
+
+fsa.dict.separator=+
+fsa.dict.encoding=UTF-8
+fsa.dict.frequency-included=true
+
+
+fsa.dict.speller.ignore-all-uppercase=false
+
+fsa.dict.encoder=suffix
