@@ -15,8 +15,9 @@ import java.util.regex.Pattern;
  */
 public class TigrinyaDictionaryReader {
 
+    private static List<TigrinyaFilter> filters = TigrinyaFilterFactory.build();
 
-    public static  Map<String, String> readPos(URL url) throws IOException {
+    public static Map<String, String> readPos(URL url) throws IOException {
         Map<String, String> posMap = new HashMap<>();
         String pattern = "(.+)\t(.+)\t(\\w+)";
         Pattern r = Pattern.compile(pattern);
@@ -35,7 +36,7 @@ public class TigrinyaDictionaryReader {
     }
 
 
-    public static Set<TigrinyaWordEntity> readDictionary(URL freq, Map<String, String> posMap, List<TigrinyaFilter<String>> pipes) throws IOException {
+    public static Set<TigrinyaWordEntity> readDictionary(URL freq, Map<String, String> posMap) throws IOException {
         SortedSet<TigrinyaWordEntity> dictionary = new TreeSet<>();
         String pattern = "<w\\s+f=\"(\\d+)\"\\s+[^>]+>([^<]+)</w>";
         Pattern r = Pattern.compile(pattern);
@@ -47,14 +48,10 @@ public class TigrinyaDictionaryReader {
             if (m.find()) {
                 String word = m.group(2);
                 Integer frequency = Integer.valueOf(m.group(1));
-                for (TigrinyaFilter<String> pipe : pipes) {
-                    word = pipe.consume(word, frequency, posMap);
-                }
-                if (word.length() > 1 && frequency > 2) {
-                    String pos = posMap.get(word);
-                    dictionary.add(new TigrinyaWordEntity(word, pos, frequency));
-                    count++;
-                }
+                String pos = posMap.get(word);
+                TigrinyaWordEntity entity = new TigrinyaWordEntity(word, pos, frequency);
+                dictionary.add(entity);
+                count++;
             }
         }
         reader.close();
@@ -62,12 +59,15 @@ public class TigrinyaDictionaryReader {
         return dictionary;
     }
 
-
-    public static Set<TigrinyaWordEntity> readDictionary(URL freq, Map<String, String> posMap) throws IOException {
-        return readDictionary(freq,posMap,new ArrayList<TigrinyaFilter<String>>());
+    public static void addToDictionary(Set<TigrinyaWordEntity> dictionary, TigrinyaWordEntity entity, Map<String, String> posMap) {
+        for (TigrinyaFilter filter : filters) {
+            entity = filter.consume(entity, posMap);
+        }
+        if (entity != null && !posMap.containsKey(entity.getWord())) {
+            System.out.println("adding = " + entity);
+            dictionary.add(entity);
+        }
     }
-
-
 
     public static void saveWordlistDictionary(URL url, Set<TigrinyaWordEntity> dictionary) throws IOException {
         String file = url.getFile().replace("target/classes", "src/main/resources");
@@ -81,8 +81,6 @@ public class TigrinyaDictionaryReader {
         out.write("</wordlist>");
         out.close();
     }
-
-
 
 
     public static void saveDictionary(URL url, Set<TigrinyaWordEntity> dictionary) throws IOException {

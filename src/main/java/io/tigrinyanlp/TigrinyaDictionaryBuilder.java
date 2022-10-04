@@ -37,32 +37,34 @@ public class TigrinyaDictionaryBuilder
     // download https://github.com/fgaim/Tigrinya-WordCount/blob/main/ti_word_count.txt in /hunspell/ti/
     static final String hunspell_extra = "/hunspell/ti/ti_word_count.txt";
 
-    static final String hunspell_dic = "/hunspell/ti/ti_ER.dict";
+    static final String hunspell_dic = "/hunspell/ti/ti_ER.dic";
     static final String hunspell_freq = "/hunspell/ti/ti_ER_wordlist.xml";
 
     static final URL dic = defaultResourceDataBroker.getFromResourceDirAsUrl(hunspell_dic);
-    static final URL freq = (URL) defaultResourceDataBroker.getFromResourceDirAsUrl(hunspell_freq);
+    static final URL freq =  defaultResourceDataBroker.getFromResourceDirAsUrl(hunspell_freq);
     static final URL input = defaultResourceDataBroker.getFromResourceDirAsUrl(hunspell_extra);
+
 
     public static void main(String[] args) throws Exception {
         Map<String, String> posMap = TigrinyaDictionaryReader.readPos(dic);
-        Set<TigrinyaWordEntity> readDictionary = TigrinyaDictionaryReader.readDictionary(freq,posMap);
+        Set<TigrinyaWordEntity> existingDictionary = TigrinyaDictionaryReader.readDictionary(freq,posMap);
         Map<String, Integer> newWords = readInput(input);
         for (Map.Entry<String, Integer> entry : newWords.entrySet()) {
-            if(!posMap.keySet().contains(entry.getKey()) && entry.getValue()>70){
+            if(!posMap.keySet().contains(entry.getKey()) && entry.getValue()>3){
                 try {
                     String pos = getPos(entry.getKey());
-                    System.out.println(entry.getKey() + " / " + entry.getValue() + " / " + pos);
-                    Thread.sleep(10);
-                    readDictionary.add(new TigrinyaWordEntity(entry.getKey(), pos, entry.getValue()));
+//                    System.out.println(entry.getKey() + " / " + entry.getValue() + " / " + pos);
+//                    Thread.sleep(10);
+                    TigrinyaDictionaryReader.addToDictionary(existingDictionary,
+                            new TigrinyaWordEntity(entry.getKey(), pos, entry.getValue()),posMap);
                 }catch (Exception e){
                     System.out.println(e.getMessage());
                 }
             }
         }
 
-        TigrinyaDictionaryReader.saveWordlistDictionary(freq,readDictionary);
-        TigrinyaDictionaryReader.saveDictionary(dic,readDictionary);
+        TigrinyaDictionaryReader.saveWordlistDictionary(freq,existingDictionary);
+        TigrinyaDictionaryReader.saveDictionary(dic,existingDictionary);
     }
 
     private static Map<String, Integer> readInput(URL url) throws IOException {
@@ -106,9 +108,9 @@ public class TigrinyaDictionaryBuilder
                 List list = gson.fromJson(responses, List.class);
                 return (String) ((List) list.get(0)).get(1);
             } catch (Exception e) {
-                return "";
+                return "UNK";
             }
         }
-        return "";
+        return "UNK";
     }
 }

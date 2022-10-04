@@ -14,9 +14,9 @@ import java.util.TreeSet;
  */
 
 public class TigrinyaWordEntity implements Comparable<TigrinyaWordEntity> {
-    final String word;
-    final String pos;
-    final Integer freq;
+    private final String word;
+    private final String pos;
+    private final Integer freq;
 
     public TigrinyaWordEntity(String word, String pos, Integer freq) {
         this.word = word;
@@ -41,6 +41,13 @@ public class TigrinyaWordEntity implements Comparable<TigrinyaWordEntity> {
         return word;
     }
 
+    public String getPos() {
+        return pos;
+    }
+
+    public Integer getFreq() {
+        return freq;
+    }
 
     @Override
     public int compareTo(@NotNull TigrinyaWordEntity o) {

@@ -9,6 +9,6 @@ import java.util.Map;
  *
  * @author Biniam Gebremichael
  */
-public interface TigrinyaFilter<T> {
-    String consume(T word, Integer frequency, Map<String, String> posMap);
+public interface TigrinyaFilter  {
+    TigrinyaWordEntity consume(TigrinyaWordEntity wordEntity, Map<String, String> posMap);
 }

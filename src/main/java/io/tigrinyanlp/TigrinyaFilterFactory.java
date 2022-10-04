@@ -15,8 +15,8 @@ import java.util.regex.Pattern;
  */
 public class TigrinyaFilterFactory {
 
-    public static List<TigrinyaFilter<String>> build() {
-        List<TigrinyaFilter<String>> filter = Arrays.asList(
+    public static List<TigrinyaFilter > build() {
+        List<TigrinyaFilter > filter = Arrays.asList(
                 //accept frequency >2 and word length > 1
                 //replace "ፀ" "ኀ" "ሠ" family with their corresponding Tigrinya families
                 new ReplacableWords(),
@@ -32,66 +32,72 @@ public class TigrinyaFilterFactory {
         return filter;
     }
 
-    public static class InvalidWords implements TigrinyaFilter<String> {
+    public static class InvalidWords implements TigrinyaFilter {
         String pattern = "[፩|፪|፫|፬|፭|፮|፯|፰|፱|፲|፳|፴|፵|፶|፷|፸|፹|፺|፻|፼|A-Z|a-z|0-9]";
         Pattern r = Pattern.compile(pattern);
 
         @Override
-        public String consume(String word, Integer frequency, Map<String, String> posMap) {
-            return r.matcher(word).find() ? "" : word;
+        public TigrinyaWordEntity consume(TigrinyaWordEntity entry, Map<String, String> posMap) {
+            if(entry==null){return null;}
+            return r.matcher(entry.getWord()).find() ? null : entry;
         }
     }
 
-    public static class ShortWord implements TigrinyaFilter<String> {
+    public static class ShortWord implements TigrinyaFilter {
 
         @Override
-        public String consume(String word, Integer frequency, Map<String, String> posMap) {
-            return word.length() > 1 && frequency > 2 ? word : "";
+        public TigrinyaWordEntity consume(TigrinyaWordEntity entry, Map<String, String> posMap) {
+            if(entry==null){return null;}
+            return entry.getWord().length() > 1 && entry.getFreq() > 2 ? entry : null;
         }
     }
 
 
-    static class SplitVerbFromProposition implements TigrinyaFilter<String> {
+    static class SplitVerbFromProposition implements TigrinyaFilter {
         Pattern r = Pattern.compile("^(ስለ|ምስ|ከም|እንተ|ብዘይ)(.+)$");
 
         @Override
-        public String consume(String word, Integer frequency, Map<String, String> posMap) {
-            Matcher matcher = r.matcher(word);
+        public TigrinyaWordEntity consume(TigrinyaWordEntity entry, Map<String, String> posMap) {
+            if(entry==null){return null;}
+            Matcher matcher = r.matcher(entry.getWord());
             if (matcher.find()) {
                 String verb = matcher.group(2);
                 String pos = posMap.get(verb);
-                String posw = posMap.get(word);
+                String posw = posMap.get(entry.getWord());
                 //remove joined words if root is verb longer than 2 chars or non verb >3 chars exist
                 if (verb.length() > 2 && posw != null && pos != null && (posw.startsWith("V") || pos.startsWith("V"))) {
-                    return "";
+                    return null;
                 } else if (verb.length() > 3 && pos != null) {
-                    System.out.println(matcher.group(1) + " " + verb + " - " + posw + "/" + pos);
-                    return "";
+//                    System.out.println(matcher.group(1) + " " + verb + " - " + posw + "/" + pos);
+                    return null;
                 }
             }
-            return word;
+            return entry;
         }
     }
 
-    static class InvalidStart implements TigrinyaFilter<String> {
-        Pattern r = Pattern.compile("^'");
-        Pattern r2 = Pattern.compile("'$");
+    static class InvalidStart implements TigrinyaFilter {
+        Pattern r = Pattern.compile("^[\"|'|']+");
+        Pattern r2 = Pattern.compile("[\"|'|']+$");
 
         @Override
-        public String consume(String word, Integer frequency, Map<String, String> posMap) {
-            return r.matcher(word).find() || r2.matcher(word).find() ? "" : word;
+        public TigrinyaWordEntity consume(TigrinyaWordEntity entry, Map<String, String> posMap) {
+            if(entry==null){return null;}
+            return r.matcher(entry.getWord()).find() || r2.matcher(entry.getWord()).find() ? null : entry;
         }
     }
 
-    static class ReplacableWords implements TigrinyaFilter<String> {
+    static class ReplacableWords implements TigrinyaFilter {
         @Override
-        public String consume(String word, Integer frequency, Map<String, String> posMap) {
+        public TigrinyaWordEntity consume(TigrinyaWordEntity entry, Map<String, String> posMap) {
+            if(entry==null){return null;}
             List<String> wrongTigrinya = Arrays.asList("ፀ", "ፁ", "ፂ", "ፃ", "ፄ", "ፅ", "ፆ", "ፇ", "ኀ", "ኁ", "ኂ", "ኃ", "ኄ", "ኅ", "ኆ", "ኇ", "ሠ", "ሡ", "ሢ", "ሣ", "ሤ", "ሥ", "ሦ", "ሧ");
             List<String> correctTigrinya = Arrays.asList("ጸ", "ጹ", "ጺ", "ጻ", "ጼ", "ጽ", "ጾ", "ጿ", "ሀ", "ሁ", "ሂ", "ሃ", "ሄ", "ህ", "ሆ", "ሇ", "ሰ", "ሱ", "ሲ", "ሳ", "ሴ", "ስ", "ሶ", "ሷ");
             for (int i = 0; i < wrongTigrinya.size(); i++) {
-                word = word.replace(wrongTigrinya.get(i), correctTigrinya.get(i));
+                String word = entry.getWord().replace(wrongTigrinya.get(i), correctTigrinya.get(i));
+                entry = new TigrinyaWordEntity(word,entry.getPos(),entry.getFreq());
             }
-            return word;
+            return entry;
         }
     }
 
